@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Creating an Improved Retinal Disease Image Recognition Model</title>
+    <style>
+        body { font-family: Georgia, serif; max-width: 600px; margin: 40px 0 40px 20px; padding: 0 20px; line-height: 1.6; }
+        h1 { margin: 0 0 20px 0; }
+        h2 { margin-bottom: 0; }
+        h2 + p { margin-top: 0.3em; color: #666; }
+        img { max-width: 100%; height: auto; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1><a href="/">David Lomelin</a></h1>
+    <p><a href="mailto:jlomelin@mit.edu">jlomelin@mit.edu</a> | <a href="https://github.com/jdl20515" target="_blank">github</a> | <a href="https://www.linkedin.com/in/david-lom/" target="_blank">linkedin</a></p>
+    
+    <h2>Creating an Improved Retinal Disease Image Recognition Model</h2>
+    <p>November 26, 2022</p>
+    
+    <p>Over the summer, I collaborated in the development of a research paper with other students. The paper's purpose was to develop a convolutional neural network that could recognize various types of retinal diseases and run on mobile devices. This was done by combining MobileNetV2, a pretrained network, with more layers added manually, then training it on Retinal Scans.</p>
+    
+    <p>Over the development of the paper, I ended up doing the majority of the model building and fine tuning of the hyperparameters of the neural network, with the help of other collaborators. In the end we created a simple, though effective, model that could recognize Diabetic Retinopathy, in addition to other diseases, with high accuracy. In other words, my team and I created a program that could help doctors in the real world with the diagnosis of retinal diseases. The reason that the model was so simple was because it was created with mobile applications in mind, which means that any doctor, even if they only had a phone, could use our model to diagnose the disease. In turn, this could lower the cost of diagnosis for patients, as the model requires a small fraction of the computing power of what is typically necessary in image analysis neural networks. The full paper, <a href="https://ijsser.org/more2022.php?id=213" target="_blank">THE DEVELOPMENT OF AN ACCURATE AND COMPUTATIONALLY FEASIBLE MOBILENETV2 ALGORITHIM TO DIAGNOSE RETINAL DISEASES</a>, can be found here.</p>
+    
+    <img src="../images/Creating an Improved Retinal Disease Image Recognition Model/retinal-scan.png" alt="Preprocessed Retinal Scan">
+    <p><em>Preprocessed Retinal Scan [1]</em></p>
+    
+    <p>After the paper was published, I found that my curiosity in the world of research was not satiated. I wanted to create a more complicated neural network with less help, and create further research. This motivated me to create a small team that would mostly focus on the writing and publishing of the paper, while I focused more on the research itself. I wanted this research paper to focus on a new field that I hadn't done before, and after doing a lot of initial research looking into several medical fields, my team and I ironically concluded that doing more research based on retinal diseases would likely be our best option. This was in part due to an interesting dataset that we found, called the MURED dataset. In short, the MURED dataset is a combination of three smaller datasets, which are the ARIA, STARE, and RFMiD datasets. In addition, the MURED dataset does several preprocessing transformations to the combined dataset, including cleaning up a lot of the noise and getting rid of low quality scans[1]. The research paper that goes alongside the dataset can be found <a href="https://arxiv.org/abs/2207.02335v2" target="_blank">here</a>. After reading the paper, I found that the paper used a neural network in order to classify the images, but there are several glaring problems with the paper. The elephant in the room is the authors' use of Transformers in an image classification application. Typically, Transformers are used in Natural Language Processing tasks, such as Google Translate, and not in image recognition like was used in the paper. Although possible, it is not yet proven that using Transformers on Image Classification are superior to using regular Convolutional Neural Networks, especially when there is relatively low data, such as in the MURED dataset[2]. Additionally, the authors did not account for potential noise that could come from doctors taking a retinal scan, as it was mostly removed in the preprocessing step[3]. Despite the paper's flaws, the authors did manage to create a very effective model using Transformers, but there is still a lot of room to grow. This can be seen particularly in the model's mAP and F1 scores, which can be calculated as the following:</p>
+    
+    <img src="../images/Creating an Improved Retinal Disease Image Recognition Model/f1-formula.png" alt="F1 Score Formula">
+    <p><em>F1 Score Formula [4]</em></p>
+    
+    <img src="../images/Creating an Improved Retinal Disease Image Recognition Model/map-formula.png" alt="mAP Score Formula">
+    <p><em>mAP Score Formula [5]</em></p>
+    
+    <p>From this, we can deduce that the precision of the model is low, as both of these metrics measure precision in some way. This is a big concern, as precision is measured by True Positives / (True Positives + False Positives). In other words, having a low precision correlates with a high rate of false positives, which could falsely identify someone with having a disease that they do not have!</p>
+    
+    <p>After finding a dataset and a paper on which could be improved, I started building the model architecture for the neural network. Initially, I was very idealistic and drafted the model as the following:</p>
+    
+    <img src="../images/Creating an Improved Retinal Disease Image Recognition Model/cnn-architecture.png" alt="Initial CNN Architecture">
+    <p><em>Initial CNN Architecture</em></p>
+    
+    <p>Taking a quick look at the model architecture, we can see that my original idea was to use a combination of many pretrained models, which is not very typical in the world of image processing and was a big step up from the last Neural Network that I had created. After loading the dataset and doing some preprocessing, the inputs were passed into several pretrained models, the outputs of which were passed again into more pretrained models, and the outputs were concatenated and put into more convolution layers. Further, the two were concatenated into a final concatenation, then were passed into fully connected layers, and then into the final prediction layer. Something of note is that the initial testing of the model was done with a Binary Input and Output, but with the MURED dataset a Multiclass Classification with a SoftMax activation was used. When implementing the model in Google Colab however, I ran into a big problem. The size and complexity of the model was too much for Colab to handle, which caused a memory error. I had never even considered this as a problem, because I had only worked with one pretrained model at a time before. After simplifying down the amount of pretrained models used from five to two, the model began to work. Currently, only EfficientNet and ResNet50V2 are being used, as both use relatively low memory.</p>
+    
+    <p>That was a quick update of my research as of November 15, 2022. Future steps in my research include finding a final model architecture, developing more advanced preprocessing to account for noise, and tuning the Network's hyperparameters.</p>
+    
+    <h3>References</h3>
+    <p>[1] Rivera, M. A. R. (2022). Retrieved 2022, from <a href="https://data.mendeley.com/datasets/pc4mb3h8hz/2" target="_blank">https://data.mendeley.com/datasets/pc4mb3h8hz/2</a>.</p>
+    
+    <p>[2] Radhakrishnan, P. (2022). Why transformers are slowly replacing cnns in Computer Vision? becominghuman.ai. Retrieved November 19, 2022, from <a href="https://becominghuman.ai/transformers-in-vision-e2e87b739feb" target="_blank">https://becominghuman.ai/transformers-in-vision-e2e87b739feb</a></p>
+    
+    <p>[3] Rodriguez, M. A., AlMarzouqi, H., & Liatsis, P. (2022, July 7). Multi-label retinal disease classification using Transformers. arXiv.org. Retrieved November 18, 2022, from <a href="https://arxiv.org/abs/2207.02335v2" target="_blank">https://arxiv.org/abs/2207.02335v2</a></p>
+    
+    <p>[4] Riggio, C. (2019). What's the deal with Accuracy, Precision, Recall and F1? Retrieved 2022, from <a href="https://towardsdatascience.com/whats-the-deal-with-accuracy-precision-recall-and-f1-f5d8b4db1021" target="_blank">https://towardsdatascience.com/whats-the-deal-with-accuracy-precision-recall-and-f1-f5d8b4db1021</a>.</p>
+    
+    <p>[5] Gad, A. F. (2020). Evaluating Object Detection Models Using Mean Average Precision (mAP). Retrieved 2022, from <a href="https://blog.paperspace.com/mean-average-precision/" target="_blank">https://blog.paperspace.com/mean-average-precision/</a>.</p>
+</body>
+</html>
+

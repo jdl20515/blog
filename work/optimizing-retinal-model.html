@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Optimizing a Retinal Disease Image Recognition Model</title>
+    <style>
+        body { font-family: Georgia, serif; max-width: 600px; margin: 40px 0 40px 20px; padding: 0 20px; line-height: 1.6; }
+        h1 { margin: 0 0 20px 0; }
+        h2 { margin-bottom: 0; }
+        h2 + p { margin-top: 0.3em; color: #666; }
+        h3 { margin-top: 30px; margin-bottom: 10px; }
+        img { max-width: 100%; height: auto; margin: 20px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1><a href="/">David Lomelin</a></h1>
+    <p><a href="mailto:jlomelin@mit.edu">jlomelin@mit.edu</a> | <a href="https://github.com/jdl20515" target="_blank">github</a> | <a href="https://www.linkedin.com/in/david-lom/" target="_blank">linkedin</a></p>
+    
+    <h2>Optimizing a Retinal Disease Image Recognition Model</h2>
+    <p>March 5, 2023</p>
+    
+    <h3>Introduction</h3>
+    
+    <p>This is the second part of creating a better model for the MURED dataset. My goal with the research was to create a more effective model for the MURED dataset. In addition to this, the MURED dataset was made using very high quality images, which does not always reflect real world conditions. In order to account for this, I also created an image noise generator reflective of real world conditions. Lastly, by making a better CNN model, even if only better through a few metrics, would imply that Transformer models are not always the best option to use in certain image recognition tasks. There is an ongoing debate for which type of model is better for certain image recognition tasks[1] and this would show that more complex models are not necessary in order to get similar accuracy.</p>
+    
+    <h3>New Model Changes</h3>
+    
+    <p>In the first part, I described the initial model architecture that was going to be used. However, due to Colab memory usage limitations and other errors, including a low accuracy and hard to train model, I decided to go with a much simpler model. The model takes the following architecture.</p>
+    
+    <img src="../images/Optimizing a Retinal Disease Image Recognition Model/new_model.png" alt="New Model Architecture">
+    <p><em>New Model Architecture</em></p>
+    
+    <p>There are several differences between the original model and the current one. Firstly, the new model has data augmentations and an image noise step. I will go more into detail later in the blog, but for now keep in mind that the images are much better prepared than in the initial model. The second large change made is that the model now only combines an Xception model's output with a ResNet model's output. The two models have a very small size, and are still very accurate.</p>
+    
+    <p><strong>Backbone Data[2]:</strong></p>
+    <table>
+        <tr>
+            <th>Model</th>
+            <th>No. of Parameters</th>
+            <th>Top-1 Accuracy</th>
+            <th>Top-5 Accuracy</th>
+        </tr>
+        <tr>
+            <td>Inception</td>
+            <td>23.62 million</td>
+            <td>0.782</td>
+            <td>0.941</td>
+        </tr>
+        <tr>
+            <td>VGG</td>
+            <td>138 million</td>
+            <td>0.715</td>
+            <td>0.901</td>
+        </tr>
+        <tr>
+            <td>Xception</td>
+            <td>22.85 million</td>
+            <td>0.79</td>
+            <td>0.945</td>
+        </tr>
+        <tr>
+            <td>ResNet</td>
+            <td>23 million</td>
+            <td>0.77</td>
+            <td>0.933</td>
+        </tr>
+    </table>
+    
+    <p>Before, there were four models being combined in different ways, but after many iterations I found that the simpler the model, the better it was at learning. Lastly, I increased the amount of fully connected layers from two to four, adding many more units. Although there are a few smaller changes I did not go over, and some not shown on the graphic, those were by far the changes that gave the biggest difference in the model performance.</p>
+    
+    <h3>Data Augmentation, Noise and Images</h3>
+    
+    <p>Data augmentation, or the practice of creating "new" data from existing data was a crucial part of increasing the model's metrics. Although the Transformer based model utilizes data augmentation, many of the augmentations used do not reflect real world conditions. For example, a vertical flip and a rotation of up to 30 degrees were used on the dataset as augmentations. There is no reason for a retinal scan to be taken at a 30 degree angle, much less upside down. Additionally, most of the augmentations were applied at a rate of .3 or .5, while my model's augmentations were applied across all of the dataset. Some of the augmentations that were used include a width, height and zoom shift, to account for slightly differing eye sizes and inconsistent pictures, a 50% horizontal flip to train the model for both right and left eyes, and a brightness range, samplewise center and samplewise standard normalization to account for inconsistent lighting between scans. In addition to this, the "OTHER" class was removed from the training set, minimizing the amount of diseases with an unproportionally small sample size.</p>
+    
+    <img src="../images/Optimizing a Retinal Disease Image Recognition Model/before_augmentations.png" alt="Eye Scans Before Image Augmentations" onerror="this.style.display='none'">
+    <p><em>Eye Scans Before Image Augmentations</em></p>
+    
+    <img src="../images/Optimizing a Retinal Disease Image Recognition Model/after_augmentations.png" alt="Eye Scans After Image Augmentations" onerror="this.style.display='none'">
+    <p><em>Eye Scans After Image Augmentations (samplewise_std_normalization set to False)</em></p>
+    
+    <p>The MURED dataset comes from many high quality images, and a full breakdown can be found of how the dataset was found at <a href="https://arxiv.org/pdf/2207.02335.pdf" target="_blank">https://arxiv.org/pdf/2207.02335.pdf</a>. Although clean data is nice to train a model on, it does not teach the model how to recognize retinal diseases when given a non-perfect image. To account for this, 20% of images underwent an artificial noise generator to simulate real world eye scanning conditions. An example of scans with the added noise are seen below, with image augmentations. (The Samplewise Center augmentation greatly reduces the visibility of the noise added, but is still present).</p>
+    
+    <img src="../images/Optimizing a Retinal Disease Image Recognition Model/with_noise.png" alt="Eye Scans After Image Augmentations with Noise Function" onerror="this.style.display='none'">
+    <p><em>Eye Scans After Image Augmentations with Noise Function</em></p>
+    
+    <h3>Model Metrics</h3>
+    
+    <p>The main goal of the research conducted was to create a more effective model on the MURED dataset while making the model account better for real life situations. Before comparing the two models, it is important to keep in mind that these metrics were taken with the addition of random noise and augmentations that reflect the real world closely, which the Transformer model did not have. The main issue with the Transformer model, outlined in the first research blog, was a low precision, shown in both the mean average precision metric and in the model's F1 score. Their model's mAP score was 0.685, while their F1 score was 0.573. Although not specified, the assumption was made that the score was based off of the dataset's validation data. In comparison, as of February 14, 2023, our best model's mAP score is 0.733, improving the precision. However, our model's F1 score is 0.4614, which is a little worse than the Transformer's model's metric. Additionally, our AUC was very similar to theirs, as we had 0.9233 while they had 0.962. Lastly, the ML score, defined by the previous MURED research paper, is defined as ML Score = (ML mAP + ML AUC)/2. While the proposed Transformer based model scored a maximum ML Score of 0.824, the CNN based model scored a maximum ML Score of 0.834, which shows an improvement over the Transformer based model.</p>
+    
+    <h3>Conclusion</h3>
+    
+    <p>The results of our model are significant because our model is a major improvement over the Transformer based model, due to the improved image augmentations and an overall improvement in the model metrics. Although not perfect, the model is an important step in using machine learning to help doctors diagnose retinal diseases because it shows that RNNs and Transformers are not necessary to do so. These models typically take more space and more data to be effective, and their main advantage is that they can "understand context" in an image. However, this is not important as most eyes have a very similar structure to each other. Additionally, the model was trained to account for variations in retinal scans through data augmentation. In conclusion, all of the goals set initially were achieved. The CNN based model was better than the Transformer model on most of the metrics used, a successful data augmentation and noise generator that reflect the real world were created, and this successfully demonstrates that Transformer and RNN based image recognition models are not always better than CNN based ones.</p>
+    
+    <p>This research will be published sometime over the next month or two, and more updates will come as soon as we get a publication.</p>
+    
+    <h3>Citations</h3>
+    <p>[1] <a href="https://becominghuman.ai/transformers-in-vision-e2e87b739feb" target="_blank">https://becominghuman.ai/transformers-in-vision-e2e87b739feb</a></p>
+    <p>[2] <a href="https://analyticsindiamag.com/a-comparison-of-4-popular-transfer-learning-models/" target="_blank">https://analyticsindiamag.com/a-comparison-of-4-popular-transfer-learning-models/</a></p>
+</body>
+</html>
+
